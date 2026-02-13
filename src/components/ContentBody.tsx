@@ -12,7 +12,7 @@ const ContentBody = (props: ContentBodyProps) => {
   return (
     <>
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-500">{props.content.timestamp}</p>
+        <p className="text-sm text-gray-500" suppressHydrationWarning>{props.content.timestamp}</p>
 
         <div className="flex space-x-2">
           <button

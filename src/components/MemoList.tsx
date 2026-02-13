@@ -1,7 +1,7 @@
 "use client";
 
 import { Memo, Reply } from "../types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import Editor from "./Editor";
 import ContentBody from "./ContentBody";
@@ -12,8 +12,28 @@ type MemoListProps = {
   setMemos: React.Dispatch<React.SetStateAction<Memo[]>>;
 };
 
+const REPLIES_STORAGE_KEY = "replies";
+
 const MemoList = (props: MemoListProps) => {
   const [replies, setReplies] = useState<Reply[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // マウント後にlocalStorageから読み込む
+  useEffect(() => {
+    const saved = localStorage.getItem(REPLIES_STORAGE_KEY);
+    if (saved) {
+      setReplies(JSON.parse(saved));
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // 初回読み込み後のみlocalStorageに保存する
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(REPLIES_STORAGE_KEY, JSON.stringify(replies));
+    }
+  }, [replies, isLoaded]);
+
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [editingTo, setEditingTo] = useState<{
     id: number;

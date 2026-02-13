@@ -12,16 +12,7 @@ const Layout = (props: LayoutProps) => {
 
       <footer>
         <p className="text-gray-700">
-          Created by{" "}
-          <a
-            className="text-emerald-600"
-            href="https://github.com/kazzyfrog"
-            target="_blank"
-            rel="noreferrer"
-          >
-            @kazzyfrog
-          </a>{" "}
-          &copy; 2024
+          Created by Oga &copy; 2026
         </p>
       </footer>
     </div>
