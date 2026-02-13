@@ -1,7 +1,7 @@
 "use client";
 
 import { Memo, Reply } from "../types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import Editor from "./Editor";
 import ContentBody from "./ContentBody";
@@ -14,25 +14,31 @@ type MemoListProps = {
 
 const REPLIES_STORAGE_KEY = "replies";
 
+// Color accents per card - visual variety keeps attention (Von Restorff effect)
+const leftAccents = [
+  "bg-blue-600",
+  "bg-purple-600",
+  "bg-teal-600",
+  "bg-green-600",
+];
+
 const MemoList = (props: MemoListProps) => {
-  const [replies, setReplies] = useState<Reply[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // マウント後にlocalStorageから読み込む
-  useEffect(() => {
-    const saved = localStorage.getItem(REPLIES_STORAGE_KEY);
-    if (saved) {
-      setReplies(JSON.parse(saved));
+  const [replies, setReplies] = useState<Reply[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(REPLIES_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
     }
-    setIsLoaded(true);
-  }, []);
+    return [];
+  });
+  const hasMounted = useRef(false);
 
-  // 初回読み込み後のみlocalStorageに保存する
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(REPLIES_STORAGE_KEY, JSON.stringify(replies));
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
     }
-  }, [replies, isLoaded]);
+    localStorage.setItem(REPLIES_STORAGE_KEY, JSON.stringify(replies));
+  }, [replies]);
 
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [editingTo, setEditingTo] = useState<{
@@ -57,7 +63,7 @@ const MemoList = (props: MemoListProps) => {
   };
 
   const startEdit = (id: number, type: "memo" | "reply") => {
-    setEditingTo({ id: id, type: type });
+    setEditingTo({ id, type });
   };
 
   const getRepliesForMemo = (memoId: number) => {
@@ -79,45 +85,90 @@ const MemoList = (props: MemoListProps) => {
 
   return (
     <>
-      {props.memos.map((memo) => (
-        <div
-          key={memo.id}
-          className="border border-gray-300 shadow bg-white rounded-lg p-4"
-        >
-          {editingTo?.id === memo.id && editingTo?.type === "memo" ? (
-            <Editor initialValue={memo.text} onSubmit={updateMemo} />
-          ) : (
-            <div className="space-y-4">
-              <ContentBody
-                type="memo"
-                content={memo}
-                onDelete={deleteMemo}
-                startEdit={startEdit}
-              />
-              <hr />
-              <div className="ml-8 space-y-4">
-                <ReplyList
-                  replies={getRepliesForMemo(memo.id)}
-                  setReplies={setReplies}
-                  startEdit={startEdit}
-                  editingTo={editingTo}
-                  setEditingTo={setEditingTo}
-                />
-                {replyingTo === memo.id ? (
-                  <Editor onSubmit={addReply} placeholder="リプライを入力..." />
-                ) : (
+      {props.memos.map((memo, idx) => {
+        const memoReplies = getRepliesForMemo(memo.id);
+        const replyCount = memoReplies.length;
+        const accent = leftAccents[idx % leftAccents.length];
+
+        return (
+          <div
+            key={memo.id}
+            className="group memo-card bg-neutral-0 border border-neutral-200 rounded-lg shadow-sm overflow-hidden animate-in"
+            style={{ animationDelay: `${idx * 0.06}s` }}
+          >
+            <div className="flex">
+              {/* Left accent bar - color coding creates visual rhythm */}
+              <div className={`w-1 shrink-0 ${accent}`} />
+
+              <div className="flex-1 min-w-0">
+                {/* Memo body */}
+                <div className="p-4">
+                  {editingTo?.id === memo.id && editingTo?.type === "memo" ? (
+                    <Editor
+                      initialValue={memo.text}
+                      onSubmit={updateMemo}
+                      type="edit"
+                    />
+                  ) : (
+                    <ContentBody
+                      type="memo"
+                      content={memo}
+                      onDelete={deleteMemo}
+                      startEdit={startEdit}
+                    />
+                  )}
+                </div>
+
+                {/* Thread toggle */}
+                <div className="border-t border-neutral-100 px-4 py-2 flex items-center justify-between">
                   <button
-                    onClick={() => setReplyingTo(memo.id)}
-                    className="-ml-8 text-emerald-600 hover:text-emerald-700"
+                    onClick={() =>
+                      setReplyingTo(replyingTo === memo.id ? null : memo.id)
+                    }
+                    className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-blue-700 transition-colors"
                   >
-                    <MessageCircle className="w-4 h-4" />
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>
+                      {replyCount > 0 ? (
+                        <>
+                          <span className="font-medium text-blue-600">
+                            {replyCount}
+                          </span>
+                          件の返信
+                        </>
+                      ) : (
+                        "返信する"
+                      )}
+                    </span>
                   </button>
+                </div>
+
+                {/* Replies */}
+                {(replyCount > 0 || replyingTo === memo.id) && (
+                  <div className="border-t border-neutral-100 px-4 py-3 space-y-3 bg-neutral-100/50">
+                    <ReplyList
+                      replies={memoReplies}
+                      setReplies={setReplies}
+                      startEdit={startEdit}
+                      editingTo={editingTo}
+                      setEditingTo={setEditingTo}
+                    />
+                    {replyingTo === memo.id && (
+                      <div className="animate-in">
+                        <Editor
+                          onSubmit={addReply}
+                          placeholder="返信を入力..."
+                          type="reply"
+                        />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
-          )}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </>
   );
 };

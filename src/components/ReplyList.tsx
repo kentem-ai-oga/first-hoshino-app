@@ -34,10 +34,18 @@ const ReplyList = (props: ReplyListProps) => {
 
   return (
     <>
-      {replies.map((reply) => (
-        <div key={reply.id} className="p-6 bg-gray-100 rounded-lg space-y-2">
+      {replies.map((reply, idx) => (
+        <div
+          key={reply.id}
+          className="group p-3 bg-neutral-100 rounded-md animate-in"
+          style={{ animationDelay: `${idx * 0.05}s` }}
+        >
           {editingTo?.id === reply.id && editingTo?.type === "reply" ? (
-            <Editor initialValue={reply.text} onSubmit={updateReply} />
+            <Editor
+              initialValue={reply.text}
+              onSubmit={updateReply}
+              type="edit"
+            />
           ) : (
             <ContentBody
               type="reply"

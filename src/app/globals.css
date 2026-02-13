@@ -1,1 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  /* Atlassian neutral tokens */
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-100: #F7F8F9;
+  --color-neutral-200: #DCDFE4;
+  --color-neutral-300: #B3B9C4;
+  --color-neutral-400: #8590A2;
+  --color-neutral-500: #626F86;
+  --color-neutral-600: #44546F;
+  --color-neutral-700: #2C3E5D;
+  --color-neutral-800: #172B4D;
+  --color-neutral-900: #091E42;
+
+  /* Atlassian blue */
+  --color-blue-50: #E9F2FF;
+  --color-blue-100: #CCE0FF;
+  --color-blue-500: #388BFF;
+  --color-blue-600: #1D7AFC;
+  --color-blue-700: #0C66E4;
+  --color-blue-800: #0055CC;
+
+  /* Semantic accents */
+  --color-red-50: #FFEDEB;
+  --color-red-600: #E34935;
+  --color-green-50: #DCFFF1;
+  --color-green-600: #22A06B;
+  --color-purple-50: #F3F0FF;
+  --color-purple-600: #8270DB;
+  --color-teal-50: #E7F9FF;
+  --color-teal-600: #1D9AAA;
+  --color-orange-50: #FFF3EB;
+  --color-orange-600: #D97008;
+
+  /* Font stacks */
+  --font-sans: 'Zen Kaku Gothic New', 'M PLUS Rounded 1c', sans-serif;
+  --font-mincho: 'Shippori Mincho B1', serif;
+  --font-rounded: 'M PLUS Rounded 1c', sans-serif;
+}
+
+body {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.714;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Interactive card */
+.memo-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.memo-card:hover {
+  box-shadow: 0 4px 12px rgba(9, 30, 66, 0.1), 0 0 1px rgba(9, 30, 66, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fadeIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.badge-pop {
+  animation: badge-pop 0.3s ease-out forwards;
+}

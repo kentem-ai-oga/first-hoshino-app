@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from "../components/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Memo } from "../types";
 import Editor from "../components/Editor";
 import MemoList from "../components/MemoList";
@@ -17,24 +17,22 @@ const defaultMemos: Memo[] = [
 ];
 
 export default function Home() {
-  const [memos, setMemos] = useState<Memo[]>(defaultMemos);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // マウント後にlocalStorageから読み込む
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setMemos(JSON.parse(saved));
+  const [memos, setMemos] = useState<Memo[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
     }
-    setIsLoaded(true);
-  }, []);
+    return defaultMemos;
+  });
+  const hasMounted = useRef(false);
 
-  // 初回読み込み後のみlocalStorageに保存する
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(memos));
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
     }
-  }, [memos, isLoaded]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memos));
+  }, [memos]);
 
   const addMemo = (inputText: string) => {
     if (inputText.trim()) {
@@ -48,15 +46,13 @@ export default function Home() {
   };
 
   return (
-    <Layout>
-      <div className="w-3/4 flex-col space-y-4">
-        <Editor
-          placeholder="新しいメモを入力.."
-          type="shadow"
-          onSubmit={addMemo}
-        />
-      </div>
-      {isLoaded && <MemoList memos={memos} setMemos={setMemos} />}
+    <Layout memoCount={memos.length}>
+      <Editor
+        placeholder="新しいメモを入力..."
+        type="main"
+        onSubmit={addMemo}
+      />
+      <MemoList memos={memos} setMemos={setMemos} />
     </Layout>
   );
 }
